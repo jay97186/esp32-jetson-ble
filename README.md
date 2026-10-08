@@ -1,73 +1,97 @@
-# ESP32–Jetson 光通訊與 BLE ACK
+# ESP32–Jetson Optical Communication with BLE ACK
 
-ESP32-S3 以 NeoPixel LED 明滅傳送資料，Jetson 透過 CSI 相機即時接收，執行 Hamming(7,4) 解碼及 CRC-8 檢查，再透過 BLE 回傳封包 ACK。此儲存庫整理自 2026-05-21 的程式與實驗資料。
+The ESP32-S3 transmits data by turning a NeoPixel LED on and off, while the Jetson receives the optical signals in real time through a CSI camera. The Jetson performs Hamming(7,4) decoding and CRC-8 verification, then sends packet acknowledgments (ACKs) back via BLE.
 
-## 檔案導覽
+This repository contains the source code and experimental data from May 21, 2026.
 
-| 路徑 | 內容 |
+## File Structure
+
+| Path | Description |
 | --- | --- |
-| `firmware/mypcesp32tx/mypcesp32tx.ino` | ESP32-S3 LED 傳送端、BLE 狀態通知與 ACK 接收 |
-| `receiver/jetsonrx.py` | Jetson CSI 相機接收端；原始檔名為 `jetsonrx (2).py` |
-| `experiments/realtime_ble_ack_run_20260521_225857/` | 15 份原始實驗紀錄，保留原檔名 |
-| `media/demo.mp4` | 原始示範影片，重新命名便於查找 |
-| `SOURCE_MANIFEST.csv` | 原始檔名、Drive 來源、整理後路徑、大小與 SHA-256 |
+| `firmware/mypcesp32tx/mypcesp32tx.ino` | ESP32-S3 LED transmitter, BLE status notifications, and ACK reception |
+| `receiver/jetsonrx.py` | Jetson CSI camera receiver; originally named `jetsonrx (2).py` |
+| `experiments/realtime_ble_ack_run_20260521_225857/` | 15 original experimental records with filenames preserved |
+| `media/demo.mp4` | Original demonstration video, renamed for easier access |
+| `SOURCE_MANIFEST.csv` | Original filenames, Google Drive sources, organized paths, file sizes, and SHA-256 checksums |
 
-## 系統流程
+## System Workflow
 
-1. Jetson 讀取使用者輸入，透過 Bluetooth RFCOMM 傳給 PC。
-2. PC 回覆 `RECEIVED:`，確認 ESP32 韌體準備完成。
-3. Jetson 透過 BLE 送出 `PROMPT:`；ESP32 回覆 `PROMPT_ACK:RECEIVED` 後開始 LED 傳輸。
-4. Jetson 解碼封包；CRC 通過時回傳 `ACK:<packet_id>`，失敗時等待重傳。
-5. 收到最後封包後，保存完整訊息、解碼報告與原始 bit log。
+1. The Jetson reads user input and sends it to the PC via Bluetooth RFCOMM.
+2. The PC responds with `RECEIVED:` to confirm that the ESP32 firmware is ready.
+3. The Jetson sends `PROMPT:` via BLE. After the ESP32 responds with `PROMPT_ACK:RECEIVED`, LED transmission begins.
+4. The Jetson decodes each packet. If the CRC check passes, it sends `ACK:<packet_id>`; otherwise, it waits for retransmission.
+5. After receiving the final packet, the Jetson saves the complete message, decoding reports, and raw bit logs.
 
-**PC 端 RFCOMM 服務及韌體產生／燒錄程式未包含於來源資料夾。** 因此現有檔案尚不足以獨立重現完整 PC → ESP32 → Jetson 流程。
+**Note:** The PC-side RFCOMM service and the firmware generation/flashing programs are not included in the source folder. Therefore, the current repository is insufficient to independently reproduce the complete PC → ESP32 → Jetson workflow.
 
-## 硬體與相依項目
+## Hardware and Dependencies
 
-- ESP32-S3 與 NeoPixel LED。原始設定：GPIO 48、1 顆 LED、亮度 30。
-- Arduino ESP32 開發環境、ESP32 BLE headers 與 Adafruit NeoPixel 函式庫。
-- Jetson Linux、CSI 相機、Bluetooth、NVIDIA Argus／GStreamer、PyGObject、NumPy、OpenCV 與 Bleak。
-- PC 端 Bluetooth RFCOMM 服務：channel 4，須回覆 `RECEIVED:`。
+- **ESP32-S3 with NeoPixel LED:** Original configuration uses GPIO 48, one LED, and brightness level 30.
+- **ESP32 software:** Arduino ESP32 development environment, ESP32 BLE headers, and Adafruit NeoPixel library.
+- **Jetson software:** Jetson Linux, CSI camera, Bluetooth, NVIDIA Argus/GStreamer, PyGObject, NumPy, OpenCV, and Bleak.
+- **PC-side service:** Bluetooth RFCOMM service on channel 4, configured to respond with `RECEIVED:`.
 
-来源未記錄函式庫版本、JetPack 版本及確切開發板／相機型號。
+The original source does not specify library versions, JetPack version, or exact development board and camera models.
 
-## 使用方式
+## Usage Instructions
 
-1. 以 Arduino IDE 開啟 `firmware/mypcesp32tx/mypcesp32tx.ino`，確認開發板與 LED GPIO，安裝相依函式庫後燒錄。
-2. 在 Jetson 的 `receiver/jetsonrx.py` 調整 `ESP32_ADDRESS`、`PC_BLUETOOTH_ADDRESS`、`PC_RFCOMM_CHANNEL`、`SAVE_DIR` 與相機／ROI 設定。
-3. 準備 PC 端 RFCOMM 服務並確認 Bluetooth 連線。
-4. 在具有上述相依項目的 Jetson 環境執行：
+1. Open `firmware/mypcesp32tx/mypcesp32tx.ino` in the Arduino IDE. Verify the development board and LED GPIO settings, install the required libraries, and flash the firmware.
+2. On the Jetson, modify `ESP32_ADDRESS`, `PC_BLUETOOTH_ADDRESS`, `PC_RFCOMM_CHANNEL`, `SAVE_DIR`, and the camera/ROI settings in `receiver/jetsonrx.py`.
+3. Set up the PC-side RFCOMM service and verify the Bluetooth connection.
+4. Run the receiver on the Jetson:
 
    ```bash
    python3 receiver/jetsonrx.py
    ```
 
-5. 輸入 prompt。預設結果存於 `/home/jetson/capture_output/realtime_ble_ack_run_<timestamp>/`。預覽視窗按 `q` 或 Esc 可結束。
+5. Enter the prompt. By default, results are saved to:
 
-接收程式會呼叫 `sudo systemctl restart nvargus-daemon`；執行環境須允許此操作。原始 Bluetooth 位址為實驗裝置設定，部署前須依實際設備修改。
+   `/home/jetson/capture_output/realtime_ble_ack_run_<timestamp>/`
 
-## 傳輸協定
+   Press `q` or `Esc` in the preview window to exit.
 
-| 項目 | 原始設定 |
+**Important notes:**
+
+- The receiver executes `sudo systemctl restart nvargus-daemon`. The execution environment must permit this operation.
+- The original Bluetooth addresses correspond to experimental devices and must be updated before deployment.
+
+## Communication Protocol
+
+| Parameter | Original Configuration |
 | --- | --- |
-| Preamble | `1111100110101`，13 bits |
-| Header | 1 byte：packet ID 4 bits、最後封包旗標 1 bit、長度欄位 3 bits |
-| Payload | 每封包 8 bytes；長度欄位 0 表示 8 bytes |
-| CRC | CRC-8，poly `0x07`、init `0x00` |
-| 編碼 | Hamming(7,4)，20 個 codewords，交錯後 140 bits |
-| 總封包長度 | 153 bits，含 preamble |
-| LED bit interval | 16,667 µs，約 60 bits/s |
-| 相機 | 1280 × 720、60 FPS、曝光約 1/600 秒 |
-| ACK timeout | 5 秒 |
+| Preamble | `1111100110101` (13 bits) |
+| Header | 1 byte: 4-bit packet ID, 1-bit final-packet flag, 3-bit length field |
+| Payload | 8 bytes per packet; length field 0 represents 8 bytes |
+| CRC | CRC-8, polynomial `0x07`, initialization `0x00` |
+| Error Correction | Hamming(7,4), 20 codewords, resulting in 140 interleaved bits |
+| Total Packet Length | 153 bits, including preamble |
+| LED Bit Interval | 16,667 µs (approximately 60 bits/s) |
+| Camera Settings | 1280 × 720, 60 FPS, approximately 1/600-second exposure |
+| ACK Timeout | 5 seconds |
 
-## 保存的實驗
+## Experimental Results
 
-`full_message_result.txt` 記錄封包順序 `[0, 1, 2, 3, 4]`，重組訊息為 `I don't have an age; I'm Codex, an AI.`。資料夾另包含每個封包的解碼與 Hamming 報告、2 份 CRC 失敗報告、原始 bit log 與 prompt。
+The saved `full_message_result.txt` records the following packet sequence:
 
-這些是來源保存的歷史結果；本次整理沒有執行硬體傳輸測試。程式內容按原始 bytes 保存，部分韌體註解原本已有亂碼。
+`[0, 1, 2, 3, 4]`
 
-## 來源
+The reconstructed message is:
 
-[Google Drive 原始資料夾](https://drive.google.com/drive/folders/120jVGPg3Axbpoq-2wb5N0mOmq_TNrsM0)
+`I don't have an age; I'm Codex, an AI.`
 
-未額外指定授權條款。
+The experiment folder also contains:
+
+- Individual packet decoding reports and Hamming decoding reports
+- Two CRC failure reports
+- Raw bit logs
+- The original prompt
+
+These are historical experimental results preserved from the source files. No hardware transmission tests were performed during this repository organization process.
+
+The source files were preserved byte-for-byte. Some firmware comments already contained corrupted characters in the original files.
+
+## Source
+
+[Original Google Drive Folder](https://drive.google.com/drive/folders/120jVGPg3Axbpoq-2wb5N0mOmq_TNrsM0)
+
+No additional license terms have been specified.
