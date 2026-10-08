@@ -1,0 +1,22 @@
+========== Detailed Hamming Decode Report ==========
+index,byte_index,nibble_position,original_codeword,syndrome,corrected,error_bit_name,corrected_codeword,decoded_nibble_bits,nibble_hex,byte_hex
+0,0,high,0100101,000,False,none,0100101,0100,0x4,0x48
+1,0,low,1000110,000,False,none,1000110,1000,0x8,0x48
+2,1,high,0110110,000,False,none,0110110,0110,0x6,0x61
+3,1,low,0001111,000,False,none,0001111,0001,0x1,0x61
+4,2,high,0110110,000,False,none,0110110,0110,0x6,0x6E
+5,2,low,1110000,000,False,none,1110000,1110,0xE,0x6E
+6,3,high,0010011,000,False,none,0010011,0010,0x2,0x20
+7,3,low,0000000,000,False,none,0000000,0000,0x0,0x20
+8,4,high,0100101,000,False,none,0100101,0100,0x4,0x41
+9,4,low,0001111,000,False,none,0001111,0001,0x1,0x41
+10,5,high,0100101,000,False,none,0100101,0100,0x4,0x49
+11,5,low,1001001,000,False,none,1001001,1001,0x9,0x49
+12,6,high,0010011,000,False,none,0010011,0010,0x2,0x2E
+13,6,low,1110000,000,False,none,1110000,1110,0xE,0x2E
+14,7,high,0000000,000,False,none,0000000,0000,0x0,0x00
+15,7,low,0000000,000,False,none,0000000,0000,0x0,0x00
+16,8,high,0000000,000,False,none,0000000,0000,0x0,0x00
+17,8,low,0000000,000,False,none,0000000,0000,0x0,0x00
+18,9,high,0111001,000,False,none,0111001,0111,0x7,0x7B
+19,9,low,1011010,000,False,none,1011010,1011,0xB,0x7B

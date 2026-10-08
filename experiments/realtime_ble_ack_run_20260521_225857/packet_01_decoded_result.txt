@@ -1,0 +1,14 @@
+========== Packet Decode Result ==========
+Corrected Hamming codewords: 0
+Raw 10 bytes hex: 10 68 61 76 65 20 61 6e 20 53
+Header: 0x10
+Packet ID: 1
+Last packet: False
+Header len field: 0  (0 means 8 bytes)
+Payload fixed length: 8
+Payload 8 bytes hex: 68 61 76 65 20 61 6e 20
+Useful payload hex after stripping 0x00: 68 61 76 65 20 61 6e 20
+Received CRC: 0x53
+Calculated CRC: 0x53
+CRC OK: True
+Decoded text: have an 

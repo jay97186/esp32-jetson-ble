@@ -1,0 +1,14 @@
+========== Packet Decode Result ==========
+Corrected Hamming codewords: 0
+Raw 10 bytes hex: 48 61 6e 20 41 49 2e 00 00 7b
+Header: 0x48
+Packet ID: 4
+Last packet: True
+Header len field: 0  (0 means 8 bytes)
+Payload fixed length: 8
+Payload 8 bytes hex: 61 6e 20 41 49 2e 00 00
+Useful payload hex after stripping 0x00: 61 6e 20 41 49 2e
+Received CRC: 0x7B
+Calculated CRC: 0x7B
+CRC OK: True
+Decoded text: an AI.
